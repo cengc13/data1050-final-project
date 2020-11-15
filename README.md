@@ -1,7 +1,7 @@
 # Covid case tracker
 > DATA1050 Final Project Fall 20
 
-## Requirements
+## Project handout
 
 https://docs.google.com/document/d/1uwpXgpEZpacViosYREnze5MGQFuVhMaRtYixxmIKXBU/edit#
 

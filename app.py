@@ -39,25 +39,20 @@ def description():
     Returns overall project description in markdown
     """
     return html.Div(children=[dcc.Markdown('''
-        # Energy Planner
-        As of today, 138 cities in the U.S. have formally announced 100% renewable energy goals or
-        targets, while others are actively considering similar goals. Despite ambition and progress,
-        conversion towards renewable energy remains challenging.
+        # Covid-19 tracker in the United States
+        
+        The coronavirus pandemic has caused more than 240,000 deaths in the United States alone.
+        Worse yet, a thrid surge wave is coming in sight. It is of crucial importance to understand and project
+        the trend of covid-19 cases so that policy-makers can come up with short-term tactics to restrict the 
+        spread, accordingly.
 
-        Wind and solar power are becoming more cost effective, but they will always be unreliable
-        and intermittent sources of energy. They follow weather patterns with potential for lots of
-        variability. Solar power starts to die away right at sunset, when one of the two daily peaks
-        arrives (see orange curve for load).
-
-        **Energy Planner is a "What-If" tool to assist making power conversion plans.**
-        It can be used to explore load satisfiability under different power contribution with 
-        near-real-time energy production & consumption data.
+        **Covid-19 tracker is a "What-If" tool to assist making Covid-19 strategies.**
+        It can be used to understand and project the trend if more precautions and restrictions are taken.
 
         ### Data Source
-        Energy Planner utilizes near-real-time energy production & consumption data from [BPA 
-        Balancing Authority](https://www.bpa.gov/news/AboutUs/Pages/default.aspx).
-        The [data source](https://transmission.bpa.gov/business/operations/Wind/baltwg.aspx) 
-        **updates every 5 minutes**. 
+        Covid-19 tracker utilizes near-real-time covid-19 data from [nytime covid-19 data](https://github.com/nytimes/covid-19-data).
+        The [data source](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv) 
+        **updates every day**. 
         ''', className='eleven columns', style={'paddingLeft': '5%'})], className="row")
 
 
