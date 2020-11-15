@@ -1,4 +1,4 @@
-# Covid-19 tracker
+# Covid tracker in the U.S.
 > DATA1050 Final Project Fall 20
 
 ## Project handout
