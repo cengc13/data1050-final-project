@@ -4,7 +4,7 @@ import dash_html_components as html
 import numpy as np
 import plotly.graph_objects as go
 
-from database import fetch_all_bpa_as_df
+from database import fetch_all_db_as_df
 
 # Definitions of constants. This projects uses extra CSS stylesheet at `./assets/style.css`
 COLORS = ['rgb(67,67,67)', 'rgb(115,115,115)', 'rgb(49,130,189)', 'rgb(189,189,189)']
@@ -26,11 +26,11 @@ def page_header():
                  className="ten columns"),
         html.A([html.Img(id='logo', src=app.get_asset_url('github.png'),
                          style={'height': '35px', 'paddingTop': '7%'}),
-                html.Span('Blownhither', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
+                html.Span('Old boys', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
                                                 'paddingLeft': '4px', 'color': '#a3a7b0',
                                                 'textDecoration': 'none'})],
                className="two columns row",
-               href='https://github.com/blownhither/'),
+               href='https://github.com/cengc13/'),
     ], className="row")
 
 
@@ -51,7 +51,7 @@ def description():
 
         ### Data Source
         Covid-19 tracker utilizes near-real-time covid-19 data from [nytime covid-19 data](https://github.com/nytimes/covid-19-data).
-        The [data source](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv) 
+        The [data source](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv) 
         **updates every day**. 
         ''', className='eleven columns', style={'paddingLeft': '5%'})], className="row")
 
@@ -62,26 +62,26 @@ def static_stacked_trend_graph(stack=False):
     If `stack` is `True`, the 4 power sources are stacked together to show the overall power
     production.
     """
-    df = fetch_all_bpa_as_df()
+    df = fetch_all_db_as_df()
     if df is None:
         return go.Figure()
-    sources = ['Wind', 'Hydro', 'Fossil/Biomass', 'Nuclear']
-    x = df['Datetime']
+    sources = ['cases', 'deaths']
+    x = df['date']
     fig = go.Figure()
     for i, s in enumerate(sources):
         fig.add_trace(go.Scatter(x=x, y=df[s], mode='lines', name=s,
-                                 line={'width': 2, 'color': COLORS[i]},
-                                 stackgroup='stack' if stack else None))
-    fig.add_trace(go.Scatter(x=x, y=df['Load'], mode='lines', name='Load',
-                             line={'width': 2, 'color': 'orange'}))
-    title = 'Energy Production & Consumption under BPA Balancing Authority'
+                                line={'width': 2, 'color': COLORS[i]},
+                                stackgroup='stack' if stack else None))
+    # fig.add_trace(go.Scatter(x=x, y=df['Load'], mode='lines', name='Load',
+    #                          line={'width': 2, 'color': 'orange'}))
+    title = 'Covid-19 Cases and Deaths in the United States'
     if stack:
         title += ' [Stacked]'
     fig.update_layout(template='plotly_dark',
                       title=title,
                       plot_bgcolor='#23272c',
                       paper_bgcolor='#23272c',
-                      yaxis_title='MW',
+                      yaxis_title='Number of Cases and Deaths',
                       xaxis_title='Date/Time')
     return fig
 
@@ -164,8 +164,8 @@ def dynamic_layout():
         description(),
         # dcc.Graph(id='trend-graph', figure=static_stacked_trend_graph(stack=False)),
         dcc.Graph(id='stacked-trend-graph', figure=static_stacked_trend_graph(stack=True)),
-        what_if_description(),
-        what_if_tool(),
+        # what_if_description(),
+        # what_if_tool(),
         architecture_summary(),
     ], className='row', id='content')
 
@@ -199,8 +199,8 @@ def update_hydro_sacle_text(value):
      dash.dependencies.Input('hydro-scale-slider', 'value')])
 def what_if_handler(wind, hydro):
     """Changes the display graph of supply-demand"""
-    df = fetch_all_bpa_as_df(allow_cached=True)
-    x = df['Datetime']
+    df = fetch_all_db_as_df(allow_cached=True)
+    x = df['date']
     supply = df['Wind'] * wind + df['Hydro'] * hydro + df['Fossil/Biomass'] + df['Nuclear']
     load = df['Load']
 
