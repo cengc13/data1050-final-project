@@ -2,6 +2,7 @@ dash
 matplotlib
 numpy
 pandas
+scikit-learn
 plotly
 pymongo
 requests
