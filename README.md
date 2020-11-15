@@ -1,4 +1,4 @@
-# Covid case tracker
+# Covid-19 tracker
 > DATA1050 Final Project Fall 20
 
 ## Project handout
