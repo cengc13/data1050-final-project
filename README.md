@@ -1,2 +1,6 @@
-# data1050-final-project
-Data Science Web Application Project
+# Energy Planner
+> DATA1050 Example Project Fall 20
+
+
+https://docs.google.com/document/d/1uwpXgpEZpacViosYREnze5MGQFuVhMaRtYixxmIKXBU/edit#
+
