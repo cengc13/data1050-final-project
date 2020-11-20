@@ -1,0 +1,16 @@
+### Download mongo docker image 
+sudo docker pull mongo
+
+### Create a docker container named 'm1'
+docker run -d -p 27017:27017 --name m1 mongo
+
+
+### Stop and restart
+docker stop m1
+
+docker start m1
+
+### Check the status
+docker ps
+
+
