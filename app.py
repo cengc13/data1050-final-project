@@ -22,7 +22,7 @@ def page_header():
     Returns the page header as a dash `html.Div`
     """
     return html.Div(id='header', children=[
-        html.Div([html.H3('Visualization with datashader and Plotly')],
+        html.Div([html.H3('Interactive visualization with Dash and Plotly')],
                  className="ten columns"),
         html.A([html.Img(id='logo', src=app.get_asset_url('github.png'),
                          style={'height': '35px', 'paddingTop': '7%'}),
@@ -30,7 +30,7 @@ def page_header():
                                                 'paddingLeft': '4px', 'color': '#a3a7b0',
                                                 'textDecoration': 'none'})],
                className="two columns row",
-               href='https://github.com/cengc13/'),
+               href='https://github.com/cengc13/data1050-final-project'),
     ], className="row")
 
 
@@ -39,20 +39,23 @@ def description():
     Returns overall project description in markdown
     """
     return html.Div(children=[dcc.Markdown('''
-        # Covid-19 tracker in the United States
+        # US COVID-19 Tracker
         
-        The coronavirus pandemic has caused more than 240,000 deaths in the United States alone.
-        Worse yet, a thrid surge wave is coming in sight. It is of crucial importance to understand and project
-        the trend of covid-19 cases so that policy-makers can come up with short-term tactics to restrict the 
-        spread, accordingly.
+        The coronavirus pandemic has caused more than a Million deaths in the globe. The situation is very severe
+        in the United States. Therefore, it is of crucial importance to understand and project
+        the trend of COVID-19 cases so that policy-makers can come up with short-term and long-term strategies to
+        limit the spread and mitigate the effect of another outbreak in the near future.
 
-        **Covid-19 tracker is a "What-If" tool to assist making Covid-19 strategies.**
+        **US COVID-19 tracker is a "What-If" tool to assist making strategies.**
         It can be used to understand and project the trend if more precautions and restrictions are taken.
 
         ### Data Source
-        Covid-19 tracker utilizes near-real-time covid-19 data from [nytime covid-19 data](https://github.com/nytimes/covid-19-data).
+        Covid-19 tracker utilizes historical and live covid-19 data from 
+        [New York Times github repository](https://github.com/nytimes/covid-19-data).
         The [data source](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv) 
-        **updates every day**. 
+        **is updated every day**.
+        Also, the data for state and county population is merged to obtain the positive rate over population at different 
+        geographical levels.
         ''', className='eleven columns', style={'paddingLeft': '5%'})], className="row")
 
 

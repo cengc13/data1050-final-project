@@ -8,33 +8,18 @@ import utils
 client = pymongo.MongoClient()
 logger = logging.Logger(__name__)
 utils.setup_logger(logger, 'db.log')
-RESULT_CACHE_EXPIRATION = 60            # seconds
+RESULT_CACHE_EXPIRATION = 3600            # seconds
 
-
-def upsert_db(df):
-    """
-    Update MongoDB database `covid19` and collection `covid19` with the given `DataFrame`.
-    """
-    db = client.get_database("covid19")
-    collection = db.get_collection("covid19")
-    update_count = 0
-    for record in df.to_dict('records'):
-        result = collection.replace_one(
-            filter={'Datetime': record['Datetime']},    # locate the document if exists
-            replacement=record,                         # latest document
-            upsert=True)                                # update if exists, insert if not
-        if result.matched_count > 0:
-            update_count += 1
-    logger.info("rows={}, update={}, ".format(df.shape[0], update_count) +
-                "insert={}".format(df.shape[0]-update_count))
-
-
+levels = ['covid-us', 'covid-us-state', 'covid-us-county', 'mask-use-by-county']
 def fetch_all_db():
-    db = client.get_database("covid19")
-    collection = db.get_collection("covid19")
-    ret = list(collection.find())
-    logger.info(str(len(ret)) + ' documents read from the db')
-    return ret
+    db = client.get_database("covid-us")
+    ret_dict = {}
+    for level in levels:
+        collection = db.get_collection(level)
+        ret = list(collection.find())
+        ret_dict[level] = ret
+        logger.info(str(len(ret)) + ' documents read from the db')
+    return ret_dict
 
 
 _fetch_all_db_as_df_cache = expiringdict.ExpiringDict(max_len=1,
@@ -48,12 +33,15 @@ def fetch_all_db_as_df(allow_cached=False):
     is False.
     """
     def _work():
-        data = fetch_all_db()
-        if len(data) == 0:
+        ret_dict = fetch_all_db()
+        if len(ret_dict) == 0:
             return None
-        df = pd.DataFrame.from_records(data)
-        df.drop('_id', axis=1, inplace=True)
-        return df
+        df_dict = {}
+        for level, data in ret_dict.items():
+            df = pd.DataFrame.from_records(data)
+            df.drop('_id', axis=1, inplace=True)
+            df_dict[level] = df
+        return df_dict
 
     if allow_cached:
         try:

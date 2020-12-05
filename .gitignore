@@ -1,5 +1,5 @@
 *
-  
+!*data/  
 !.gitignore
 !*.py
 !*.txt
@@ -18,3 +18,4 @@
 !.jupyter/*.py
 !doc/
 !doc/*.png
+
