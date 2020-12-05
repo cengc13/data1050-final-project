@@ -16,7 +16,6 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 # Define component functions
 
-
 def page_header():
     """
     Returns the page header as a dash `html.Div`
@@ -59,35 +58,78 @@ def description():
         ''', className='eleven columns', style={'paddingLeft': '5%'})], className="row")
 
 
-def static_stacked_trend_graph(stack=False):
-    """
-    Returns scatter line plot of all power sources and power load.
-    If `stack` is `True`, the 4 power sources are stacked together to show the overall power
-    production.
-    """
-    df = fetch_all_db_as_df()
-    if df is None:
-        return go.Figure()
-    sources = ['cases', 'deaths']
+def time_series_cumulative(label):
+    colors = { 
+    "cases": 'rgba(80, 26, 80, 0.2)', 
+    "deaths": 'rgba(16, 112, 2, 0.2)'
+    }
+    df_dict = fetch_all_db_as_df()
+    df = df_dict['covid-us']
     x = df['date']
-    fig = go.Figure()
-    for i, s in enumerate(sources):
-        fig.add_trace(go.Scatter(x=x, y=df[s], mode='lines', name=s,
-                                line={'width': 2, 'color': COLORS[i]},
-                                stackgroup='stack' if stack else None))
-    # fig.add_trace(go.Scatter(x=x, y=df['Load'], mode='lines', name='Load',
-    #                          line={'width': 2, 'color': 'orange'}))
-    title = 'Covid-19 Cases and Deaths in the United States'
-    if stack:
-        title += ' [Stacked]'
-    fig.update_layout(template='plotly_dark',
-                      title=title,
-                      plot_bgcolor='#23272c',
-                      paper_bgcolor='#23272c',
-                      yaxis_title='Number of Cases and Deaths',
-                      xaxis_title='Date/Time')
+    trace = go.Scatter(x=x, y=df[label], mode='lines', name=label, fill='tozeroy',
+                       fillcolor=colors[label], 
+                       line={'width': 2, 'color': colors[label]})
+
+    title = f'Cumulative Covid {label.lower()} in U.S. over time'
+    layout = dict(title=title,
+#                   plot_bgcolor='#23272c',
+#                   paper_bgcolor='#23272c',
+                  yaxis_title=f'# of {label}',
+                  xaxis_title='Date/Time',
+                 
+                  font=dict(family="Courier New, monospace",
+                            size=16))
+    data = [trace]
+    fig = dict(data=data, layout=layout)
     return fig
 
+
+
+def architecture_summary():
+    """
+    Returns the text and image of architecture summary of the project.
+    """
+    return html.Div(children=[
+        dcc.Markdown('''
+            # Project Architecture
+            This project uses MongoDB as the database. All data acquired are stored in raw form to the
+            database (with de-duplication). An abstract layer is built in `database.py` so all queries
+            can be done via function call. For a more complicated app, the layer will also be
+            responsible for schema consistency. A `plot.ly` & `dash` app is serving this web page
+            through. Actions on responsive components on the page is redirected to `app.py` which will
+            then update certain components on the page.  
+        ''', className='row eleven columns', style={'paddingLeft': '5%'}),
+
+        html.Div(children=[
+            html.Img(src="https://docs.google.com/drawings/d/e/2PACX-1vQNerIIsLZU2zMdRhIl3ZZkDMIt7jhE_fjZ6ZxhnJ9bKe1emPcjI92lT5L7aZRYVhJgPZ7EURN0AqRh/pub?w=670&amp;h=457",
+                     className='row'),
+        ], className='row', style={'textAlign': 'center'}),
+
+        dcc.Markdown('''
+        
+        ''')
+    ], className='row')
+
+
+# Sequentially add page components to the app's layout
+def dynamic_layout():
+    return html.Div([
+        page_header(),
+        html.Hr(),
+        description(),
+        dcc.Graph(id='case-total-us', figure=time_series_cumulative(label='cases')),
+        dcc.Graph(id='death-total-us', figure=time_series_cumulative(label='deaths')),
+        # what_if_description(),
+        # what_if_tool(),
+        architecture_summary(),
+    ], className='row', id='content')
+
+
+# set layout to a function which updates upon reloading
+app.layout = dynamic_layout
+
+
+# Defines the dependencies of interactive components
 
 def what_if_description():
     """
@@ -133,51 +175,6 @@ def what_if_tool():
     ], className='row eleven columns')
 
 
-def architecture_summary():
-    """
-    Returns the text and image of architecture summary of the project.
-    """
-    return html.Div(children=[
-        dcc.Markdown('''
-            # Project Architecture
-            This project uses MongoDB as the database. All data acquired are stored in raw form to the
-            database (with de-duplication). An abstract layer is built in `database.py` so all queries
-            can be done via function call. For a more complicated app, the layer will also be
-            responsible for schema consistency. A `plot.ly` & `dash` app is serving this web page
-            through. Actions on responsive components on the page is redirected to `app.py` which will
-            then update certain components on the page.  
-        ''', className='row eleven columns', style={'paddingLeft': '5%'}),
-
-        html.Div(children=[
-            html.Img(src="https://docs.google.com/drawings/d/e/2PACX-1vQNerIIsLZU2zMdRhIl3ZZkDMIt7jhE_fjZ6ZxhnJ9bKe1emPcjI92lT5L7aZRYVhJgPZ7EURN0AqRh/pub?w=670&amp;h=457",
-                     className='row'),
-        ], className='row', style={'textAlign': 'center'}),
-
-        dcc.Markdown('''
-        
-        ''')
-    ], className='row')
-
-
-# Sequentially add page components to the app's layout
-def dynamic_layout():
-    return html.Div([
-        page_header(),
-        html.Hr(),
-        description(),
-        # dcc.Graph(id='trend-graph', figure=static_stacked_trend_graph(stack=False)),
-        dcc.Graph(id='stacked-trend-graph', figure=static_stacked_trend_graph(stack=True)),
-        # what_if_description(),
-        # what_if_tool(),
-        architecture_summary(),
-    ], className='row', id='content')
-
-
-# set layout to a function which updates upon reloading
-app.layout = dynamic_layout
-
-
-# Defines the dependencies of interactive components
 
 @app.callback(
     dash.dependencies.Output('wind-scale-text', 'children'),
@@ -193,7 +190,6 @@ def update_wind_sacle_text(value):
 def update_hydro_sacle_text(value):
     """Changes the display text of the hydro slider"""
     return "Hydro Power Scale {:.2f}x".format(value)
-
 
 
 @app.callback(

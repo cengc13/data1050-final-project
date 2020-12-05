@@ -8,7 +8,7 @@ import utils
 client = pymongo.MongoClient()
 logger = logging.Logger(__name__)
 utils.setup_logger(logger, 'db.log')
-RESULT_CACHE_EXPIRATION = 3600            # seconds
+RESULT_CACHE_EXPIRATION = 3600 * 24          # seconds
 
 levels = ['covid-us', 'covid-us-state', 'covid-us-county', 'mask-use-by-county']
 def fetch_all_db():
@@ -40,6 +40,7 @@ def fetch_all_db_as_df(allow_cached=False):
         for level, data in ret_dict.items():
             df = pd.DataFrame.from_records(data)
             df.drop('_id', axis=1, inplace=True)
+            df.columns = map(str.lower, df.columns)
             df_dict[level] = df
         return df_dict
 

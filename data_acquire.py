@@ -16,14 +16,20 @@ urls = {
     'covid-us': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv",
     'covid-us-state': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv",
     'covid-us-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
-    'mask-use-by-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/mask-use/mask-use-by-county.csv"
+    'mask-use-by-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/mask-use/mask-use-by-county.csv",
+    'state-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationState.csv",
+    'county-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationCounty.csv",
+    'fips_code': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/fips_code.csv",
 }
 
 filters = {
     'covid-us': ['date'],
     'covid-us-state': ['date', 'state'],
     'covid-us-county': ['date', 'county'],
-    'mask-use-by-county': ['COUNTYFP']
+    'mask-use-by-county': ['COUNTYFP'],
+    'state-population': ['state'],
+    'county-population': ['county'],
+    'fips_code': ['county']
 }
 
 all_states = np.array(['Washington', 'Wisconsin', 'Wyoming', 'Illinois', 'California',
@@ -42,7 +48,7 @@ all_states = np.array(['Washington', 'Wisconsin', 'Wyoming', 'Illinois', 'Califo
 
 
 # MAX_DOWNLOAD_ATTEMPT = 5
-DOWNLOAD_PERIOD = 60        # second
+DOWNLOAD_PERIOD = 3600*24        # second, one day update
 
 client = pymongo.MongoClient()
 logger = logging.Logger(__name__)
