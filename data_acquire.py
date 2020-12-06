@@ -20,16 +20,18 @@ urls = {
     'state-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationState.csv",
     'county-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationCounty.csv",
     'fips_code': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/fips_code.csv",
+    'state-area': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/StateArea.csv",
 }
 
 filters = {
     'covid-us': ['date'],
     'covid-us-state': ['date', 'state'],
-#     'covid-us-county': ['date', 'county'], 
+#     'covid-us-county': ['date', 'county'],
     'mask-use-by-county': ['COUNTYFP'],
     'state-population': ['state'],
     'county-population': ['county'],
-    'fips_code': ['county']
+    'fips_code': ['county'],
+    'state-area': ['state'],
 }
 
 all_states = np.array(['Washington', 'Wisconsin', 'Wyoming', 'Illinois', 'California',

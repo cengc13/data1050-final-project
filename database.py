@@ -11,7 +11,7 @@ utils.setup_logger(logger, 'db.log')
 RESULT_CACHE_EXPIRATION = 3600 * 24          # seconds
 
 levels = ['covid-us', 'covid-us-state', 'mask-use-by-county', 'state-population',
-         'county-population', 'fips_code']
+         'county-population', 'fips_code', 'state-area']
 
 def fetch_all_db():
     db = client.get_database("covid-us")
