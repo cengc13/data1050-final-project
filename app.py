@@ -398,7 +398,7 @@ def visualization_summary():
 #                         placeholder="Select State",
                         style={'width': '40%', 'float':'left', 'display': 'inline-block'}
                     ),],  style={'width': '98%', 'display': 'inline-block'}),
-                dcc.Graph(id='time-series-state', style={'height': 500, 'width': 1100})
+#                 dcc.Graph(id='time-series-state', style={'height': 500, 'width': 1100})
                 ],
                 style={'width': '98%', 'float': 'right', 'display': 'inline-block'}),
     ])
