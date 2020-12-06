@@ -2,7 +2,10 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import numpy as np
+from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+
+from database import fetch_all_db_as_df
 
 from database import fetch_all_db_as_df
 from utils import get_state_codes, get_state_name, daily_increase, moving_average
