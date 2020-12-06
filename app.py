@@ -510,3 +510,6 @@ def dynamic_layout():
 
 # set layout to a function which updates upon reloading
 app.layout = dynamic_layout
+
+if __name__ == '__main__':
+    app.run_server(debug=True, port=1050, host='0.0.0.0')
