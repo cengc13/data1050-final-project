@@ -2,14 +2,25 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import numpy as np
-from dash.dependencies import Input, Output
 import plotly.graph_objects as go
-
-from database import fetch_all_db_as_df
 
 from database import fetch_all_db_as_df
 from utils import get_state_codes, get_state_name, daily_increase, moving_average
 from utils import all_states, state_code_dict, state_map_dict
+
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+
+import numpy as np
+import pandas as pd
+from datetime import datetime
+
+import plotly.graph_objects as go
+import plotly.express as px
+
+from database import fetch_all_db_as_df
 
 # Definitions of constants. This projects uses extra CSS stylesheet at `./assets/style.css`
 COLORS = ['rgb(67,67,67)', 'rgb(115,115,115)', 'rgb(49,130,189)', 'rgb(189,189,189)']
@@ -107,17 +118,6 @@ def visualization_description():
     ]
     )
 
-def heat_map_description():
-    """
-    Returns description of "What-If" - the interactive component
-    """
-    return html.Div(children=[
-        dcc.Markdown('''
-        ### " Heat Map "
-        We use the state-level COVID-19 data to power the heat map and track the outbreak
-        over all states of US. 
-        ''', className='eleven columns', style={'paddingLeft': '5%'})
-    ], className="row")
 
 # Defines the dependencies of interactive components
 @app.callback(Output('time-series-total', 'figure'),
@@ -183,16 +183,19 @@ def time_series_daily(label, window_size=7):
     return fig
 
 @app.callback(Output('time-series-state', 'figure'),
-            Input('target-for-state',' value'),
             Input('plot-type', 'value'),
-            Input('state-name', 'value'))
-def time_series_state(label, plot_type, state_name):
+            Input('state-name', 'value'),
+            Input('label-by-state', 'value'),
+             )
+def time_series_state(plot_type='daily', state_name='Rhode Island', label='cases',):
+#     print(label, plot_type, state_name)
     df = df_dict['covid-us-state']
     df['state_code'] = df['state'].apply(lambda x: state_code_dict[x])
     state_code = state_code_dict[state_name]
     df_state = df[df.state_code == state_code]
     state = state_name
     df_state = df_state.sort_values(by='date')
+    df_state = pd.DataFrame(df_state, columns=df_state.columns)
     x = df_state.date
     y = df_state[label].values
     if plot_type == 'daily':
@@ -216,7 +219,17 @@ def time_series_state(label, plot_type, state_name):
               yaxis_title=f'# of {label} per day',
               xaxis_title='Date/Time',
               font=dict(family="Courier New, monospace",
-                        size=16))
+                        size=16),
+              hoverlabel=dict(
+                bgcolor="white",
+                font_size=16,
+                font_family="Rockwell"),
+              hovermode='x Unified',
+              legend=dict(
+                        yanchor="top",
+                        y=0.99,
+                        xanchor="left",
+                        x=0.01))
         fig = dict(data=[trace_bar, trace_line], layout=layout)
         return fig
     elif plot_type == 'cumulative':
@@ -235,17 +248,44 @@ def time_series_state(label, plot_type, state_name):
         data = [trace]
         fig = dict(data=data, layout=layout)
         return fig
-    
-@app.callback(Output('heat-map', 'figure'),
-              Input('time-slider', 'value'),
-              Input('label-radioitems', 'value'))
-def heat_map(month, label):
-    """Create the heap map of given label in US at the beginning of given month"""
-    df_dict = fetch_all_db_as_df(allow_cached=True)
-    df = df_dict['covid-us-state']
-    x = df['date']
-    df['state_code'] = df['state'].apply(lambda x: get_state_codes(x))
 
+    
+@app.callback(Output('heat-map-by-state', 'figure'),
+              Input('label-radioitems', 'value'))
+def heat_map(label):
+    """Create the heap map of given label in US at the beginning of given month"""
+    df_dict = fetch_all_db_as_df(allow_cached=False)
+    df = df_dict['covid-us-state']
+    df['state_code'] = df['state'].apply(lambda x: get_state_codes(x))
+    df['month'] = df.date.dt.month_name()
+#     df['month'] = pd.to_datetime(df['month'], format='%m').dt.month_name().str.slice(stop=3)
+    df_month = df[((df.date.dt.day == 1) | (df.date == max(df.date)))]
+#     df_month['fips'] = df_month['fips'].apply(lambda x: str(x).zfill(2))
+    fig = px.choropleth(df_month, 
+                    locations='state_code',
+                    locationmode="USA-states",
+                    scope="usa",
+                    color='cases', # a column in the dataset
+                    hover_name='state', # column to add to hover information
+                    hover_data = {'cases': ':.0f', 'deaths': ':.0f', 'state_code': False, 'month': False},
+                    color_continuous_scale=px.colors.sequential.Sunsetdark if \
+                        label == 'cases' else px.colors.sequential.Greys,
+                    animation_group='state',
+                    animation_frame='month'
+                   )
+#     fig.update_traces(z=fig.frames[-1].data[0].z)
+    fig.update_layout(title_text=f"Heat Map - Total {label.title()} in US States"),
+    #fig.update(layout_coloraxis_showscale=False)
+    fig.update_layout(margin={"r":0,"l":0,"b":0})
+    fig.update_layout(transition_duration=500)
+    
+    last_frame_num = len(fig.frames) -1
+
+    fig.layout['sliders'][0]['active'] = last_frame_num
+
+    fig = go.Figure(data=fig['frames'][-1]['data'], frames=fig['frames'], layout=fig.layout)
+    fig.update_coloraxes(colorbar_title=f"<b>Color</b><br>Confirmed {label.title()}")
+    fig.layout.pop('updatemenus')
     return fig
 
 def architecture_summary():
@@ -357,9 +397,9 @@ def visualization_summary():
                                },
                         ),
                     dcc.RadioItems(
-                        id='target-for-state',
+                        id='label-by-state',
                         options=[{'label': i.title(), 'value': i} for i in ['cases', 'deaths']],
-                        value='deaths',
+                        value='cases',
                         labelStyle={
                         'display': 'inline-block',
                         },
@@ -395,17 +435,47 @@ def visualization_summary():
                         ),
                     dcc.Dropdown(
                         id='state-name',
-#                         options=[{'label': i, 'value': i} for i in list(all_states)],
-                        options=[{'label': i, 'value': i} for i in ['Rhode Island']],
+                        options=[{'label': i, 'value': i} for i in list(all_states)],
+#                         options=[{'label': i, 'value': i} for i in ['Rhode Island']],
                         value='Rhode Island',
 #                         placeholder="Select State",
                         style={'width': '40%', 'float':'left', 'display': 'inline-block'}
                     ),],  style={'width': '98%', 'display': 'inline-block'}),
-#                 dcc.Graph(id='time-series-state', style={'height': 500, 'width': 1100})
+                dcc.Graph(id='time-series-state', style={'height': 500, 'width': 1100})
                 ],
                 style={'width': '98%', 'float': 'right', 'display': 'inline-block'}),
+           
+            # Heat map by month
+            dcc.Markdown('''
+            #### Heat Map - Covid in US states
+            We use the state-level COVID-19 data to power the heat map and track the outbreak
+            over all states of US. 
+            ''', className='row eleven columns', style={'paddingLeft': '0%'}),
+        
+            html.Div([
+                html.Div([ 
+                    html.Label( ['Label:'],
+                        style={'font-weight': 'bold', 'float': 'left', 
+                               'color': 'white', 'display': 'inline-block', 
+                               },
+                        ),
+                    dcc.RadioItems(
+                        id='label-radioitems',
+                        options=[{'label': i.title(), 'value': i} for i in ['cases', 'deaths']],
+                        value='cases',
+                        labelStyle={
+                        'display': 'inline-block',
+                        },
+                        style={
+                        'width': '20%',
+                        'float': 'left',
+                        'font-weight': 'bold',
+                        'color': 'white',
+                        }),],  style={'width': '98%', 'display': 'inline-block'}),
+                dcc.Graph(id='heat-map-by-state')
+            ],
+                style={'width': '100%',  'display': 'inline-block'}),
     ])
-
 
 # Sequentially add page components to the app's layout
 def dynamic_layout():
