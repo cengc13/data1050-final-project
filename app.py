@@ -1,12 +1,5 @@
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import numpy as np
-import plotly.graph_objects as go
-
-from database import fetch_all_db_as_df
 from utils import get_state_codes, get_state_name, daily_increase, moving_average
-from utils import all_states, state_code_dict, state_map_dict
+from utils import all_states, state_code_dict, state_map_dict, fip_to_county, fip_to_state
 
 import dash
 import dash_core_components as dcc
@@ -14,6 +7,8 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 import numpy as np
+import json
+from urllib.request import urlopen
 import pandas as pd
 from datetime import datetime
 
@@ -42,10 +37,14 @@ colors_text = {
     "deaths": "olivedrab"   
 }
 
+with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+    county_json = json.load(response)
+
 # Define the dash app first
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 df_dict = fetch_all_db_as_df()
+
 
 # Define component functions
 
@@ -58,7 +57,7 @@ def page_header():
                  className="ten columns"),
         html.A([html.Img(id='logo', src=app.get_asset_url('github.png'),
                          style={'height': '35px', 'paddingTop': '7%'}),
-                html.Span('Old boys', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
+                html.Span('Old boy', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
                                                 'paddingLeft': '4px', 'color': '#a3a7b0',
                                                 'textDecoration': 'none'})],
                className="two columns row",
@@ -254,18 +253,15 @@ def time_series_state(plot_type='daily', state_name='Rhode Island', label='cases
               Input('label-radioitems', 'value'))
 def heat_map(label):
     """Create the heap map of given label in US at the beginning of given month"""
-    df_dict = fetch_all_db_as_df(allow_cached=False)
     df = df_dict['covid-us-state']
     df['state_code'] = df['state'].apply(lambda x: get_state_codes(x))
     df['month'] = df.date.dt.month_name()
-#     df['month'] = pd.to_datetime(df['month'], format='%m').dt.month_name().str.slice(stop=3)
     df_month = df[((df.date.dt.day == 1) | (df.date == max(df.date)))]
-#     df_month['fips'] = df_month['fips'].apply(lambda x: str(x).zfill(2))
     fig = px.choropleth(df_month, 
                     locations='state_code',
                     locationmode="USA-states",
                     scope="usa",
-                    color='cases', # a column in the dataset
+                    color=label, # a column in the dataset
                     hover_name='state', # column to add to hover information
                     hover_data = {'cases': ':.0f', 'deaths': ':.0f', 'state_code': False, 'month': False},
                     color_continuous_scale=px.colors.sequential.Sunsetdark if \
@@ -273,9 +269,7 @@ def heat_map(label):
                     animation_group='state',
                     animation_frame='month'
                    )
-#     fig.update_traces(z=fig.frames[-1].data[0].z)
     fig.update_layout(title_text=f"Heat Map - Total {label.title()} in US States"),
-    #fig.update(layout_coloraxis_showscale=False)
     fig.update_layout(margin={"r":0,"l":0,"b":0})
     fig.update_layout(transition_duration=500)
     
@@ -286,6 +280,27 @@ def heat_map(label):
     fig = go.Figure(data=fig['frames'][-1]['data'], frames=fig['frames'], layout=fig.layout)
     fig.update_coloraxes(colorbar_title=f"<b>Color</b><br>Confirmed {label.title()}")
     fig.layout.pop('updatemenus')
+    return fig
+
+
+def heat_map_mask_use():
+    df = df_dict['mask-use-by-county']
+    df['countyfp'] = df['countyfp'].apply(lambda x: str(int(x)).zfill(5))
+    df['state'] = df.apply(lambda x: fip_to_state(x.countyfp), axis=1)
+    df['county'] = df.apply(lambda x: fip_to_county(x.countyfp), axis=1)
+    fig = px.choropleth(df,
+                        locations='countyfp',
+                        geojson=county_json,
+                        scope="usa",
+                        color='always', # a column in the dataset
+                        hover_name='county', # column to add to hover information
+                        hover_data = {'state': True, 'countyfp': False, 'always': ':.3f'},
+                        color_continuous_scale=px.colors.sequential.Reds,
+                       )
+    fig.update_layout(title_text="Heat Map - Who is Wearing Masks in US Counties"),
+    fig.update_coloraxes(colorbar_title="<b>Color</b><br>Always fraction")
+    #fig.update(layout_coloraxis_showscale=False)
+    fig.update_layout(margin={"r":0,"l":0,"b":0})
     return fig
 
 def architecture_summary():
@@ -436,9 +451,7 @@ def visualization_summary():
                     dcc.Dropdown(
                         id='state-name',
                         options=[{'label': i, 'value': i} for i in list(all_states)],
-#                         options=[{'label': i, 'value': i} for i in ['Rhode Island']],
                         value='Rhode Island',
-#                         placeholder="Select State",
                         style={'width': '40%', 'float':'left', 'display': 'inline-block'}
                     ),],  style={'width': '98%', 'display': 'inline-block'}),
                 dcc.Graph(id='time-series-state', style={'height': 500, 'width': 1100})
@@ -472,9 +485,16 @@ def visualization_summary():
                         'font-weight': 'bold',
                         'color': 'white',
                         }),],  style={'width': '98%', 'display': 'inline-block'}),
-                dcc.Graph(id='heat-map-by-state')
+                dcc.Graph(id='heat-map-by-state', style={'height': 800, 'width': 1000})
             ],
-                style={'width': '100%',  'display': 'inline-block'}),
+                style={'width': '100%', 'float':'right', 'display': 'inline-block'}),        
+     dcc.Markdown('''
+          ### Heat map - Who is Wearing Masks in US Counties
+         ''', className='row eleven columns', style={'paddingLeft': '0%'}),
+        
+         html.Div([
+             dcc.Graph(id='mask-use-by-county', figure=heat_map_mask_use(), style={'height': 800, 'width': 1000}),
+         ], style={'width': '100%', 'float':'right', 'display': 'inline-block'})
     ])
 
 # Sequentially add page components to the app's layout
@@ -488,9 +508,5 @@ def dynamic_layout():
         architecture_summary(),
     ], className='row', id='content')
 
-
 # set layout to a function which updates upon reloading
 app.layout = dynamic_layout
-
-if __name__ == '__main__':
-    app.run_server(debug=True, port=1050, host='0.0.0.0')
