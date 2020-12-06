@@ -1,6 +1,6 @@
 import sys
 import logging
-
+import numpy as np
 
 def setup_logger(logger, output_file):
     logger.setLevel(logging.INFO)
@@ -14,6 +14,21 @@ def setup_logger(logger, output_file):
     logger.addHandler(file_handler)
 
 
+    
+
+all_states = np.array(['Washington', 'Wisconsin', 'Wyoming', 'Illinois', 'California',
+       'Arizona', 'Massachusetts', 'Texas', 'Nebraska', 'Utah', 'Oregon',
+       'Florida', 'New York', 'Rhode Island', 'Georgia', 'New Hampshire',
+       'North Carolina', 'New Jersey', 'Colorado', 'Maryland', 'Nevada',
+       'Tennessee', 'Hawaii', 'Indiana', 'Kentucky', 'Minnesota',
+       'Oklahoma', 'Pennsylvania', 'South Carolina',
+       'District of Columbia', 'Kansas', 'Missouri', 'Vermont',
+       'Virginia', 'Connecticut', 'Iowa', 'Louisiana', 'Ohio', 'Michigan',
+       'South Dakota', 'Arkansas', 'Delaware', 'Mississippi',
+       'New Mexico', 'North Dakota', 'Alaska', 'Maine', 'Alabama',
+       'Idaho', 'Montana', 'Puerto Rico', 'Virgin Islands', 'Guam',
+       'West Virginia', 'Northern Mariana Islands'], dtype=object)
+    
 ### The following two utility functions are 
 ### adpated from the kernel by kaggle.com/therealcyberlord
 def daily_increase(data):
