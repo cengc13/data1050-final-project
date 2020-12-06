@@ -15,7 +15,7 @@ import utils
 urls = {
     'covid-us': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us.csv",
     'covid-us-state': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv",
-    'covid-us-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv",
+#     'covid-us-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv", # too large, skipped!
     'mask-use-by-county': "https://raw.githubusercontent.com/nytimes/covid-19-data/master/mask-use/mask-use-by-county.csv",
     'state-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationState.csv",
     'county-population': "https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/PopulationCounty.csv",
@@ -25,7 +25,7 @@ urls = {
 filters = {
     'covid-us': ['date'],
     'covid-us-state': ['date', 'state'],
-    'covid-us-county': ['date', 'county'],
+#     'covid-us-county': ['date', 'county'], 
     'mask-use-by-county': ['COUNTYFP'],
     'state-population': ['state'],
     'county-population': ['county'],

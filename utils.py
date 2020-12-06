@@ -1,6 +1,9 @@
 import sys
 import logging
 import numpy as np
+import pandas as pd
+
+fips_code = pd.read_csv('https://raw.githubusercontent.com/cengc13/data1050-final-project/main/data/fips_code.csv', dtype={'fips' : str})
 
 def setup_logger(logger, output_file):
     logger.setLevel(logging.INFO)
@@ -48,6 +51,7 @@ def moving_average(data, window_size=7):
         else:
             moving_average.append(np.mean(data[i:len(data)]))
     return moving_average
+
 
 
 def fip_to_state(fip):
