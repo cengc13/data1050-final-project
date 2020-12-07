@@ -118,7 +118,7 @@ def visualization_description():
 
             Curve plots are used to show the time variation of cumulative and daily reported
             cases and deaths for the  national-level and state-level covid-19 data. Heat maps are used
-            to track the outbreak geographically. Bar/pie plots are mainly for comparison.
+            to track the outbreak geographically.
 
         ''', className='row eleven columns', style={'paddingLeft': '5%'}),
     ]
