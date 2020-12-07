@@ -639,7 +639,7 @@ def enhancement_summary():
     """
     return html.Div(children=[
          dcc.Markdown('''
-          ### Who is Wearing Masks in US Counties
+          ### Who is Wearing Masks in US Counties？
          ''', className='row eleven columns', style={'paddingLeft': '6%'}),
          dcc.Graph(id='mask-use-by-county', figure=heat_map_mask_use(), 
                    style={'height': 800, 'width': 1000, 'display': 'inline-block'}),
