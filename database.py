@@ -24,7 +24,7 @@ def fetch_all_db():
     return ret_dict
 
 
-_fetch_all_db_as_df_cache = expiringdict.ExpiringDict(max_len=1,
+_fetch_all_db_as_df_cache = expiringdict.ExpiringDict(max_len=10,
                                                        max_age_seconds=RESULT_CACHE_EXPIRATION)
 
 
