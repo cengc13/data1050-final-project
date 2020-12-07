@@ -97,12 +97,16 @@ def project_about():
         * Summary of performance with respect to the baseline model(s)
             * We figure out that there is a strong correlation between infection rate and population density in US states.
             * There exists a high negative correlation between the propensity to wear masks and the case fatality rate in states.
-            * A simple regression model is built to predict the trend of outbreak in US. It behaves much better than a simple baseline model
-            predicting using the average number of past week.
+            * In the next steps, we aim to build a simple regression model to predict the trend of outbreak in US. 
+            We use the historical covid data and demongraphic featurs ad predictors, and we target on prediction of
+            near-future case and death count. It is an ongoing work 
+            (Please see [this notebook](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement_Tianqi.ipynb)) 
         * Possible next steps
             * Since the county-level data contains mountains of items, it is not shown in the web application. In view of this, next we can
             move on to some other cloud platforms for data storage/update/fetch, and web engine, for example GCP and AWS.
             * We could explore more features to improve the model performance (accuracy and training efficiency)
+            * Based on the insights gained through the correlation analysis, we can estimate the 'what-if' trend of 
+            the outbreak in each state if more people are willing to comply with rules such as social distancing and wearing face coverings.
         * References to related work
             * A detailed map of who is wearing masks in the U.S. from
             [NYTimes](https://www.nytimes.com/interactive/2020/07/17/upshot/coronavirus-face-mask-map.html).
@@ -136,9 +140,8 @@ def additional_project_details():
             * Database Design: all datasets in this project are saved in a MongoDB database named 'covid-us'. Then each dataset, corresponding to
             a collection in MongoDB, is updated. In this way the database in this project looks like a two-level tree structure.
         * Link to the 'ETL_EDA.ipynb' notebook: [ETL_EDA](https://github.com/cengc13/data1050-final-project/blob/main/ETL_EDA.ipynb)
-        * Link to the 'Enhancement.ipynb' notebook: [Enhancement-1](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement.ipynb)
-        and [Enhancement-2](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement_Tianqi.ipynb).Note that figures plotted with
-        `plotly` cannot be shown in jupyter notebooks on github.
+        * Link to the 'Enhancement.ipynb' notebook: [Enhancement](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement.ipynb).
+        Note that figures plotted with `plotly` cannot be shown in jupyter notebooks on github.
 
 
         ''', className='eleven columns', style={'paddingLeft': '5%'})], className="row")

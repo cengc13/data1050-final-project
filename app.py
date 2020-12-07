@@ -687,7 +687,7 @@ def dynamic_layout():
         visualization_summary(),
         enhancement_description(),
         enhancement_summary(),
-        architecture_summary(),
+        # architecture_summary(),
     ], className='row', id='content')
 
 # set layout to a function which updates upon reloading
