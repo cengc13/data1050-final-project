@@ -1,6 +1,6 @@
 # Build AppViewer 
-from jupyterlab_dash import AppViewer
-viewer = AppViewer()
+# from jupyterlab_dash import AppViewer
+# viewer = AppViewer()
 
 from utils import get_state_codes, get_state_name, daily_increase, moving_average
 from utils import all_states, state_code_dict, state_map_dict, fip_to_county, fip_to_state
