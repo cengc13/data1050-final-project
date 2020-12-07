@@ -21,11 +21,11 @@ def page_header():
     Returns the page header as a dash `html.Div`
     """
     return html.Div(id='header', children=[
-        html.Div([html.H3('DATA1050 Final Project')],
+        html.Div([html.H3('Project Outline')],
                  className="ten columns"),
         html.A([html.Img(id='logo', src=app.get_asset_url('github.png'),
                          style={'height': '35px', 'paddingTop': '7%'}),
-                html.Span('Old boy', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
+                html.Span('Old boys', style={'fontSize': '2rem', 'height': '35px', 'bottom': 0,
                                                 'paddingLeft': '4px', 'color': '#a3a7b0',
                                                 'textDecoration': 'none'})],
                className="two columns row",
@@ -66,9 +66,9 @@ def project_about():
     return html.Div(children=[dcc.Markdown('''
         ## About
 
-        * Names of all team members: Cheng Zeng, Tianqi Tang, Zhi Wang
+        ### Names of all team members: Cheng Zeng, Tianqi Tang, Zhi Wang
 
-        * Project & Executive Summary
+        ### Project & Executive Summary
 
             * We will create a live data-science web application named “Covid-19 tracker”.
             It uses covid-19 data from the New York Times to understand and project the
@@ -89,45 +89,45 @@ def project_about():
              at various geographical levels. Meanwhile it aims to provide some insights on if restrictions, such as wearing masks,
              can help to contain the pandemic.
 
-        * Datasets used:
+        ### Datasets used:
 
-            * the covid national-level and state-level datasets  are from The New York Times,
+         The covid national-level and state-level datasets  are from The New York Times,
          based on reports from state and local health agencies. They contain a series of data files with cumulative counts of
          coronavirus cases in the United States, at the national and state level, over time. They are regularly updated every day.
          The national level data is about 7 KB. The state level data is 463 KB. The covid datasets lives on the github repo by the New York Times.
          These are raw texts that can be scraped in a straightforward way using the “request” python module.
          The raw data will be updated every day. So the incremental updates using the web scraping method will be done automatically.
 
-            * the static survey data regarding the propensity to wearing masks (109 KB), state-level population data (1 KB),
+          The static survey data regarding the propensity to wearing masks (109 KB), state-level population data (1 KB),
             and state area data (884 B) are used to understand how the role of wearing face coverings and population density
             in the course of the pandemic.
 
-        * Summary of performance with respect to the baseline model(s)
+        ### Summary of performance with respect to the baseline model(s)
 
-            * We figure out that there is a strong correlation between infection rate and population density in US states.
+             We figure out that there is a strong correlation between infection rate and population density in US states.
 
-            * There exists a high negative correlation between the propensity to wear masks and the case fatality rate in states.
+            There exists a high negative correlation between the propensity to wear masks and the case fatality rate in states.
 
-            * A simple regression model is built to predict the trend of outbreak in US. It behaves much better than a simple baseline model
+            A simple regression model is built to predict the trend of outbreak in US. It behaves much better than a simple baseline model
             predicting using the average number of past week.
 
-        * Possible next steps
+        ### Possible next steps
 
-            * Since the county-level data contains mountains of items, it is not shown in the web application. In view of this, next we can
+            Since the county-level data contains mountains of items, it is not shown in the web application. In view of this, next we can
             move on to some other cloud platforms for data storage/update/fetch, and web engine, for example GCP and AWS.
 
-            * We could explore more features to improve the model performance (accuracy and training efficiency)
+            We could explore more features to improve the model performance (accuracy and training efficiency)
 
-        * References to related work
+        ### References to related work
 
-            * A detailed map of who is wearing masks in the U.S. from
+            A detailed map of who is wearing masks in the U.S. from
             [NYTimes](https://www.nytimes.com/interactive/2020/07/17/upshot/coronavirus-face-mask-map.html).
             This website uses the mask-use-by-counties data to show patterns of wearing masks by county.
 
-            * Covid in the U.S.: Latest Map and Case Count from [NYTimes](https://www.nytimes.com/interactive/2020/us/coronavirus-us-cases.html).
+            Covid in the U.S.: Latest Map and Case Count from [NYTimes](https://www.nytimes.com/interactive/2020/us/coronavirus-us-cases.html).
             Combining demographic and population data, it shows the map for positive and death rates at state and county level.
 
-            * CDC calls on Americans to wear masks to prevent COVID-19 spread from
+            CDC calls on Americans to wear masks to prevent COVID-19 spread from
             [CDC](https://www.cdc.gov/media/releases/2020/p0714-americans-to-wear-masks.html). It highlights the importance of
             wearing face coverings in slowing the spread of covid.
 
@@ -142,28 +142,28 @@ def additional_project_details():
     return html.Div(children=[dcc.Markdown('''
         ## Additional details
 
-        * Development Process and Final Technology Stach
+        ### Development Process and Final Technology Stach
 
             Please find the project architecture for details.
 
-        * Data Acquisition, Caching, ETL Processing, Database Design
+        ### Data Acquisition, Caching, ETL Processing, Database Design
 
-            * Data Acquisition: the covid datasets and mask-use dataset are scraped from NYTime github repo. The population and area data for states come
+            Data Acquisition: the covid datasets and mask-use dataset are scraped from NYTime github repo. The population and area data for states come
             from wikipedia.
 
-            * Caching: the datasets are cached with the aid of `expiringdict` module. No more than 10 elements can be in the caching and if the length exceeds
+            Caching: the datasets are cached with the aid of `expiringdict` module. No more than 10 elements can be in the caching and if the length exceeds
             the limit, the oldest item will be removed.
 
-            * ETL Processing: datasets are upserted in to local MongoDB databases through the python 'adapter' `pymongo` module. Then the dataset can be
+            ETL Processing: datasets are upserted in to local MongoDB databases through the python 'adapter' `pymongo` module. Then the dataset can be
             readily loaded.
 
-            * Database Design: all datasets in this project are saved in a MongoDB database named 'covid-us'. Then each dataset, corresponding to
+            Database Design: all datasets in this project are saved in a MongoDB database named 'covid-us'. Then each dataset, corresponding to
             a collection in MongoDB, is updated. In this way the database in this project looks like a two-level tree structure.
 
 
-        * Link to the 'ETL_EDA.ipynb' notebook: [ETL_EDA](https://github.com/cengc13/data1050-final-project/blob/main/ETL_EDA.ipynb)
+        ### Link to the 'ETL_EDA.ipynb' notebook: [ETL_EDA](https://github.com/cengc13/data1050-final-project/blob/main/ETL_EDA.ipynb)
 
-        * Link to the 'Enhancement.ipynb' notebook: [Enhancement-1](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement.ipynb)
+        ### Link to the 'Enhancement.ipynb' notebook: [Enhancement-1](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement.ipynb)
         and [Enhancement-2](https://github.com/cengc13/data1050-final-project/blob/main/Enhancement_Tianqi.ipynb).Note that figures plotted with
         `plotly` cannot be shown in jupyter notebooks on github.
 
