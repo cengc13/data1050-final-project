@@ -1,3 +1,7 @@
+# Build AppViewer 
+from jupyterlab_dash import AppViewer
+viewer = AppViewer()
+
 from utils import get_state_codes, get_state_name, daily_increase, moving_average
 from utils import all_states, state_code_dict, state_map_dict, fip_to_county, fip_to_state
 
@@ -6,14 +10,16 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-import numpy as np
 import json
-from urllib.request import urlopen
+import numpy as np
 import pandas as pd
+from functools import reduce
 from datetime import datetime
+from urllib.request import urlopen
 
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
 
 from database import fetch_all_db_as_df
 
@@ -117,6 +123,29 @@ def visualization_description():
     ]
     )
 
+def enhancement_description():
+    """
+    Returns the text and plots of Enhancements of this project.
+    """
+    return html.Div(children=[
+      dcc.Markdown('''
+      ## Enhancement
+      Public health experts suggest that face coverings can substantially slow the transmission
+      of covid. In this section, we firstly use a heatmap to show the propensity of people to wear
+      masks in each county. This heat map is based on the survey data from a large number of interviews
+      conducted by the global data and survey firm Dynata at the request of The New York Times.
+
+      Next, we attempt to understand what factors might affect the spread of the pandamic in US states.
+      For this analysis, we select two responsive variables including case fatality rate and infection rate,
+      and two predictors, namely average wear-mask probability and population density. A simple and intuitive
+      linear correlation analysis is conducted. For Covid data, we use the latest state-level data for demonstration.
+      In order to obtain the state-level mask-use data, the county-level data is aggregated over states and we take
+      the average of features in each state to get the state-level features.
+            
+        ''', className='row eleven columns', style={'paddingLeft': '5%'}),      
+    ]
+    )
+    
 
 # Defines the dependencies of interactive components
 @app.callback(Output('time-series-total', 'figure'),
@@ -254,8 +283,8 @@ def time_series_state(plot_type='daily', state_name='Rhode Island', label='cases
 def heat_map(label):
     """Create the heap map of given label in US at the beginning of given month"""
     df = df_dict['covid-us-state']
-    df['state_code'] = df['state'].apply(lambda x: get_state_codes(x))
     df['month'] = df.date.dt.month_name()
+    df['state_code'] = df['state'].apply(lambda x: get_state_codes(x))
     df_month = df[((df.date.dt.day == 1) | (df.date == max(df.date)))]
     fig = px.choropleth(df_month, 
                     locations='state_code',
@@ -286,23 +315,136 @@ def heat_map(label):
 def heat_map_mask_use():
     df = df_dict['mask-use-by-county']
     df['countyfp'] = df['countyfp'].apply(lambda x: str(int(x)).zfill(5))
-    df['state'] = df.apply(lambda x: fip_to_state(x.countyfp), axis=1)
+    df['wear_mask_prob'] = 0.25 * df['rarely'] + 0.5 * df['sometimes'] + \
+                0.75 * df['frequently'] + 1.0 * df['always']
     df['county'] = df.apply(lambda x: fip_to_county(x.countyfp), axis=1)
+    df['state_code'] = df.apply(lambda x: fip_to_state(x.countyfp), axis=1)
+    df = df.drop(df[df['state_code'] == 'N/A'].index).reset_index(drop=True)
+    df['state'] = df['state_code'].apply(lambda x: state_map_dict[x])
     fig = px.choropleth(df,
                         locations='countyfp',
                         geojson=county_json,
                         scope="usa",
-                        color='always', # a column in the dataset
-                        hover_name='county', # column to add to hover information
-                        hover_data = {'state': True, 'countyfp': False, 'always': ':.3f'},
+                        color='wear_mask_prob', # a column in the dataset
+                        hover_name='state', # column to add to hover information
+                        hover_data = {'county': True, 'countyfp': False, 'wear_mask_prob': ':.3f'},
                         color_continuous_scale=px.colors.sequential.Reds,
                        )
     fig.update_layout(title_text="Heat Map - Who is Wearing Masks in US Counties"),
-    fig.update_coloraxes(colorbar_title="<b>Color</b><br>Always fraction")
+    fig.update_coloraxes(colorbar_title="<b>Color</b><br>Wear Mask Prob")
     #fig.update(layout_coloraxis_showscale=False)
     fig.update_layout(margin={"r":0,"l":0,"b":0})
     return fig
 
+def scatter_matrix():
+    df = df_dict['covid-us-state']
+    df.fips = df.fips.apply(lambda x: str(x).zfill(2))
+    df = df[df.date == max(df.date)]
+    df = df.drop(columns='date', axis=1).reset_index(drop=True)
+    state_pop = df_dict['state-population']
+    state_area =  df_dict['state-area']
+    
+    mask_use = df_dict['mask-use-by-county']
+    mask_use.countyfp = mask_use.countyfp.apply(lambda x: str(x).zfill(5))
+    mask_use['wear_mask_prob'] = 0.25 * mask_use['rarely'] + 0.5 * mask_use['sometimes'] + \
+                    0.75 * mask_use['frequently'] + 1.0 * mask_use['always']
+    mask_use['state_code'] = mask_use.apply(lambda x: fip_to_state(x.countyfp), axis=1)
+    mask_use['county'] = mask_use.apply(lambda x: fip_to_county(x.countyfp), axis=1)
+    df_agg = mask_use.groupby('state_code').agg(['mean'])
+    df_agg.columns = ["_".join(x) for x in df_agg.columns.ravel()]
+    df_agg.reset_index(inplace=True)
+    df_agg.rename(columns={'wear_mask_prob_mean' : 'wear_mask_prob'}, inplace=True)
+    df_agg = df_agg[['state_code', 'wear_mask_prob']]
+    df_agg.drop(df_agg[df_agg['state_code'] == 'N/A'].index, inplace = True)
+    df_agg.drop(df_agg[df_agg['state_code'] == 'DC'].index, inplace = True)
+    df_agg['state'] = df_agg['state_code'].apply(lambda x: state_map_dict[x])
+    df_agg = df_agg[['state', 'wear_mask_prob']]
+    data_frames = [df, state_pop, state_area, df_agg]
+    df_merged = reduce(lambda left, right: pd.merge(left,right,on=['state'],
+                                                how='inner'), data_frames)
+    
+    df_merged['CFR'] = df_merged['deaths'] / df_merged['cases'] 
+    df_merged['IR'] = df_merged['cases'] / df_merged['total']
+    df_merged['PD'] = df_merged['total'] / df_merged['area']
+    df_merged['WMP'] = df_merged['wear_mask_prob']
+    df_ana = df_merged[['state', 'CFR', 'IR', 'PD', 'WMP']]
+    df_ana[['CFR', 'IR', 'PD', 'WMP']] = np.round(df_ana[['CFR', 'IR', 'PD', 'WMP']], 3)
+    
+    fig = go.Figure(data=go.Splom(
+                dimensions=[dict(label='CFR', # 'Fatality rate',
+                                 values=df_ana['CFR']),
+                            dict(label='IR', #'Infection rate',
+                                 values=df_ana['IR']),
+                            dict(label='PD', #'Population density',
+                                 values=df_ana['PD']),
+                            dict(label='WMP', #'Wear mask prob.',
+                                 values=df_ana['WMP'])],
+                text=df_ana['state'],
+#                 hovertemplate="%{x}, %{y}",
+                marker=dict(showscale=False, # colors encode categorical variables
+                            line_color='white', line_width=0.5),
+                showupperhalf=False,
+                ))
+
+    fig.update_layout(
+    title='Scatter Matrix',
+    dragmode='select',
+    width=600,
+    height=600,
+    hovermode='closest',
+    )
+    return fig
+    
+    
+def correlation_matrix():
+    df = df_dict['covid-us-state']
+    df.fips = df.fips.apply(lambda x: str(x).zfill(2))
+    df = df[df.date == max(df.date)]
+    df = df.drop(columns='date', axis=1).reset_index(drop=True)
+    state_pop = df_dict['state-population']
+    state_area =  df_dict['state-area']
+    
+    mask_use = df_dict['mask-use-by-county']
+    mask_use.countyfp = mask_use.countyfp.apply(lambda x: str(x).zfill(5))
+    mask_use['wear_mask_prob'] = 0.25 * mask_use['rarely'] + 0.5 * mask_use['sometimes'] + \
+                    0.75 * mask_use['frequently'] + 1.0 * mask_use['always']
+    mask_use['state_code'] = mask_use.apply(lambda x: fip_to_state(x.countyfp), axis=1)
+    mask_use['county'] = mask_use.apply(lambda x: fip_to_county(x.countyfp), axis=1)
+    df_agg = mask_use.groupby('state_code').agg(['mean'])
+    df_agg.columns = ["_".join(x) for x in df_agg.columns.ravel()]
+    df_agg.reset_index(inplace=True)
+    df_agg.rename(columns={'wear_mask_prob_mean' : 'wear_mask_prob'}, inplace=True)
+    df_agg = df_agg[['state_code', 'wear_mask_prob']]
+    df_agg.drop(df_agg[df_agg['state_code'] == 'N/A'].index, inplace = True)
+    df_agg.drop(df_agg[df_agg['state_code'] == 'DC'].index, inplace = True)
+    df_agg['state'] = df_agg['state_code'].apply(lambda x: state_map_dict[x])
+    df_agg = df_agg[['state', 'wear_mask_prob']]
+    data_frames = [df, state_pop, state_area, df_agg]
+    df_merged = reduce(lambda left, right: pd.merge(left,right,on=['state'],
+                                                how='inner'), data_frames)
+    
+    df_merged['CFR'] = df_merged['deaths'] / df_merged['cases'] 
+    df_merged['IR'] = df_merged['cases'] / df_merged['total']
+    df_merged['PD'] = df_merged['total'] / df_merged['area']
+    df_merged['WMP'] = df_merged['wear_mask_prob']
+    df_ana = df_merged[['state', 'CFR', 'IR', 'PD', 'WMP']]
+    df_ana[['CFR', 'IR', 'PD', 'WMP']] = np.round(df_ana[['CFR', 'IR', 'PD', 'WMP']], 3)
+    df_corr = df_ana[['CFR', 'IR', 'PD', 'WMP']].corr()
+    
+    fig = go.Figure(data=go.Heatmap(z=df_corr, 
+                                    x=['CFR', 'IR', 'PD', 'WMP'], 
+                                    y=['CFR', 'IR', 'PD', 'WMP'],
+                                    colorscale='Blues',
+                                   hovertemplate=" Corr(%{x}, %{y}) = %{z:.2f}"),
+                   )
+    fig.update_layout(
+        title='Correlation Matrix',
+        height=600,
+        width=600,
+        )
+    return fig
+
+    
 def architecture_summary():
     """
     Returns the text and image of architecture summary of the project.
@@ -488,14 +630,51 @@ def visualization_summary():
                 dcc.Graph(id='heat-map-by-state', style={'height': 800, 'width': 1000})
             ],
                 style={'width': '100%', 'float':'right', 'display': 'inline-block'}),        
-     dcc.Markdown('''
-          ### Heat map - Who is Wearing Masks in US Counties
-         ''', className='row eleven columns', style={'paddingLeft': '0%'}),
-        
-         html.Div([
-             dcc.Graph(id='mask-use-by-county', figure=heat_map_mask_use(), style={'height': 800, 'width': 1000}),
-         ], style={'width': '100%', 'float':'right', 'display': 'inline-block'})
+     
     ])
+
+def enhancement_summary():
+    """
+    All Enhancement details should be arranged here.
+    """
+    return html.Div(children=[
+         dcc.Markdown('''
+          ### Who is Wearing Masks in US Counties
+         ''', className='row eleven columns', style={'paddingLeft': '6%'}),
+         dcc.Graph(id='mask-use-by-county', figure=heat_map_mask_use(), 
+                   style={'height': 800, 'width': 1000, 'display': 'inline-block'}),
+         
+         dcc.Markdown('''
+          ### Whether Population Density and Propensity of Wearing Masks Affect the Spread?
+         ''', className='row eleven columns', style={'paddingLeft': '0%'}),        
+        html.Div([
+             html.Label( ['CFR: Case Fatality Rate'],
+                        style={'font-weight': 'bold', 'float': 'left',
+                               'color': 'white', 'display': 'inline-block', 
+                               },
+                        ),
+             html.Label( ['IR: Infeaction Rate',],
+                        style={'font-weight': 'bold', 'float': 'left','margin-left': '100px',
+                               'color': 'white', 'display': 'inline-block', 
+                               },
+                        ),
+             html.Label( ['PD: Population Density',],
+                        style={'font-weight': 'bold', 'float': 'left', 'margin-left': '100px',
+                               'color': 'white', 'display': 'inline-block', 
+                               },
+                        ),
+             html.Label( ['WMP: Wear Mask Probability'],
+                style={'font-weight': 'bold', 'float': 'left','margin-left': '100px',
+                       'color': 'white', 'display': 'inline-block', 
+                       },
+                ),
+             dcc.Graph(id='scatter-matrix', figure=scatter_matrix(), 
+                       style={'width': '48%',  'display': 'inline-block'}),
+             dcc.Graph(id='correlation-matrix', figure=correlation_matrix(),
+                       style={'width': '48%', 'float':'right', 'display': 'inline-block'}),
+         ], style={'width': '100%',  'display': 'inline-block'}),
+    ]
+                   )
 
 # Sequentially add page components to the app's layout
 def dynamic_layout():
@@ -505,6 +684,8 @@ def dynamic_layout():
         project_description(),
         visualization_description(),
         visualization_summary(),
+        enhancement_description(),
+        enhancement_summary(),
         architecture_summary(),
     ], className='row', id='content')
 
