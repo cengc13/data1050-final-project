@@ -2,7 +2,7 @@ import logging
 import pymongo
 import pandas as pd
 import expiringdict
-
+import time
 import utils
 
 client = pymongo.MongoClient()
@@ -21,6 +21,7 @@ def fetch_all_db():
         ret = list(collection.find())
         ret_dict[level] = ret
         logger.info(str(len(ret)) + ' documents read from the db')
+        time.sleep(60)
     return ret_dict
 
 
@@ -36,8 +37,8 @@ def fetch_all_db_as_df(allow_cached=False):
     """
     def _work():
         ret_dict = fetch_all_db()
-        if len(ret_dict) == 0:
-            return None
+        if len(ret_dict) != 7:
+            return _work()
         df_dict = {}
         for level, data in ret_dict.items():
             df = pd.DataFrame.from_records(data)
