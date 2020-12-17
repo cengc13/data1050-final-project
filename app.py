@@ -368,7 +368,7 @@ def scatter_matrix():
     df_merged['IR'] = df_merged['cases'] / df_merged['total']
     df_merged['PD'] = df_merged['total'] / df_merged['area']
     df_merged['WMP'] = df_merged['wear_mask_prob']
-    df_ana = df_merged[['state', 'CFR', 'IR', 'PD', 'WMP']]
+    df_ana = df_merged.loc[:, ['state', 'CFR', 'IR', 'PD', 'WMP']]
     df_ana[['CFR', 'IR', 'PD', 'WMP']] = np.round(df_ana[['CFR', 'IR', 'PD', 'WMP']], 3)
 
     fig = go.Figure(data=go.Splom(
@@ -428,7 +428,7 @@ def correlation_matrix():
     df_merged['IR'] = df_merged['cases'] / df_merged['total']
     df_merged['PD'] = df_merged['total'] / df_merged['area']
     df_merged['WMP'] = df_merged['wear_mask_prob']
-    df_ana = df_merged[['state', 'CFR', 'IR', 'PD', 'WMP']]
+    df_ana = df_merged.loc[:, ['state', 'CFR', 'IR', 'PD', 'WMP']]
     df_ana[['CFR', 'IR', 'PD', 'WMP']] = np.round(df_ana[['CFR', 'IR', 'PD', 'WMP']], 3)
     df_corr = df_ana[['CFR', 'IR', 'PD', 'WMP']].corr()
 
