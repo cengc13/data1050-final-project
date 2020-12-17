@@ -23,6 +23,8 @@ def fetch_all_db():
             ret = list(collection.find())
             ret_dict[level] = ret
             length = len(ret)
+            if length == 0:
+                time.sleep(30)
             logger.info(str(length) + ' documents read from the db')
         time.sleep(1)
     return ret_dict
