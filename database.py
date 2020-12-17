@@ -21,7 +21,7 @@ def fetch_all_db():
         ret = list(collection.find())
         ret_dict[level] = ret
         logger.info(str(len(ret)) + ' documents read from the db')
-        time.sleep(60)
+        time.sleep(1)
     return ret_dict
 
 
