@@ -17,10 +17,13 @@ def fetch_all_db():
     db = client.get_database("covid-us")
     ret_dict = {}
     for level in levels:
-        collection = db.get_collection(level)
-        ret = list(collection.find())
-        ret_dict[level] = ret
-        logger.info(str(len(ret)) + ' documents read from the db')
+        length = 0
+        while length == 0:
+            collection = db.get_collection(level)
+            ret = list(collection.find())
+            ret_dict[level] = ret
+            length = len(ret)
+            logger.info(str(length) + ' documents read from the db')
         time.sleep(1)
     return ret_dict
 
@@ -37,8 +40,8 @@ def fetch_all_db_as_df(allow_cached=False):
     """
     def _work():
         ret_dict = fetch_all_db()
-        if len(ret_dict) != 7:
-            return _work()
+        if len(ret_dict) == 0:
+            return None
         df_dict = {}
         for level, data in ret_dict.items():
             df = pd.DataFrame.from_records(data)
