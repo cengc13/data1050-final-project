@@ -352,7 +352,7 @@ def scatter_matrix():
     mask_use['state_code'] = mask_use.apply(lambda x: fip_to_state(x.countyfp), axis=1)
     mask_use['county'] = mask_use.apply(lambda x: fip_to_county(x.countyfp), axis=1)
     df_agg = mask_use.groupby('state_code').agg(['mean'])
-    df_agg.columns = ["_".join(x) for x in df_agg.columns.ravel()]
+    df_agg.columns = ["_".join(x) for x in np.ravel(df_agg.columns)]
     df_agg.reset_index(inplace=True)
     df_agg.rename(columns={'wear_mask_prob_mean' : 'wear_mask_prob'}, inplace=True)
     df_agg = df_agg[['state_code', 'wear_mask_prob']]
@@ -412,7 +412,7 @@ def correlation_matrix():
     mask_use['state_code'] = mask_use.apply(lambda x: fip_to_state(x.countyfp), axis=1)
     mask_use['county'] = mask_use.apply(lambda x: fip_to_county(x.countyfp), axis=1)
     df_agg = mask_use.groupby('state_code').agg(['mean'])
-    df_agg.columns = ["_".join(x) for x in df_agg.columns.ravel()]
+    df_agg.columns = ["_".join(x) for x in np.ravel(df_agg.columns)]
     df_agg.reset_index(inplace=True)
     df_agg.rename(columns={'wear_mask_prob_mean' : 'wear_mask_prob'}, inplace=True)
     df_agg = df_agg[['state_code', 'wear_mask_prob']]
